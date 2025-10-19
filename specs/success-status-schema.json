@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hyperfleet.io/schemas/adapter-status.json",
+  "title": "Adapter Status",
+  "description": "Status object returned by Hyperfleet adapters to report execution state and results",
+  "type": "object",
+  "required": ["adapter", "observedGeneration", "conditions", "lastUpdated"],
+  "properties": {
+    "adapter": {
+      "type": "string",
+      "description": "The name of the adapter that produced this status (e.g., 'validation', 'creation', 'deletion')"
+    },
+    "observedGeneration": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The generation number of the cluster resource that was observed and processed by this adapter"
+    },
+    "conditions": {
+      "type": "array",
+      "description": "Array of condition objects representing the state of the adapter execution. Three conditions are required: 'Available' (true/false based on all other conditions, required by API), 'Applied' (indicates if job was created), and 'Health' (indicates if everything is progressing normally or if there's an unreconcilable issue)",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/definitions/condition"
+      }
+    },
+    "data": {
+      "type": "object",
+      "description": "Adapter-specific data containing detailed results. Structure varies by adapter type."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about the adapter execution (e.g., job details, timing information)",
+      "properties": {
+        "jobName": {
+          "type": "string",
+          "description": "Name of the Kubernetes Job that executed this adapter"
+        },
+        "jobNamespace": {
+          "type": "string",
+          "description": "Namespace where the Kubernetes Job was created"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Attempt number for this execution (in case of retries)"
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when the job started"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when the job completed"
+        },
+        "duration": {
+          "type": "string",
+          "description": "Human-readable duration of the job execution (e.g., '115s')"
+        }
+      }
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when this status was last updated"
+    }
+  },
+  "definitions": {
+    "condition": {
+      "type": "object",
+      "description": "Represents a specific condition or aspect of the adapter's execution state",
+      "required": ["type", "status", "reason", "message", "lastTransitionTime"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of condition. Required conditions: 'Available' (required by API, true/false based on all other conditions), 'Applied' (required, indicates if job was created), 'Health' (required, indicates if progressing normally or hit an unreconcilable issue). Additional conditions may be adapter-specific.",
+          "enum": ["Available", "Applied", "Health", "Progressing", "Failed"]
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the condition",
+          "enum": ["True", "False", "Unknown"]
+        },
+        "reason": {
+          "type": "string",
+          "description": "A programmatic identifier for the condition's current state (e.g., 'JobSucceeded', 'JobLaunched')"
+        },
+        "message": {
+          "type": "string",
+          "description": "A human-readable message providing details about the condition"
+        },
+        "lastTransitionTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the condition last transitioned from one status to another"
+        }
+      }
+    }
+  }
+}

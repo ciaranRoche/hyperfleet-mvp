@@ -1,0 +1,93 @@
+{ 
+  "adapter": "validation",
+  "observedGeneration": 1,
+  "conditions": [
+    {
+      "type": "Available",
+      "status": "True",
+      "reason": "JobSucceeded",
+      "message": "Job completed successfully after 115 seconds",
+      "lastTransitionTime": "2025-10-17T12:02:00Z"
+    },
+    {
+      "type": "Applied",
+      "status": "True", 
+      "reason": "JobLaunched",         
+      "message": "Kubernetes Job created successfully",
+      "lastTransitionTime": "2025-10-17T12:00:05Z"
+    },
+    {
+      "type": "Health",
+      "status": "True",
+      "reason": "AllChecksPassed",
+      "message": "All validation checks passed",
+      "lastTransitionTime": "2025-10-17T12:02:00Z"
+    }
+  ],
+  "data": {
+    "validationResults": {
+      "route53Zone": {
+        "status": "passed",
+        "zoneId": "Z0123456789ABC",
+        "nameServers": [
+          "ns-1.awsdns.com",
+          "ns-2.awsdns.com"
+        ],
+        "message": "Route53 zone found for hypershift.example.com"
+      },
+      "oidcBucket": {
+        "status": "passed",
+        "bucketName": "my-hypershift-oidc-bucket",
+        "region": "us-east-1",
+        "publicAccess": true,
+        "message": "S3 bucket configured correctly"
+      },
+      "awsCredentials": {
+        "status": "passed",
+        "accountId": "123456789012",
+        "message": "AWS credentials valid"
+      },
+      "awsQuotas": {
+        "status": "passed",
+        "vpc": {
+          "available": 3,
+          "required": 1,
+          "message": "VPC quota sufficient"
+        },
+        "eip": {
+          "available": 4,
+          "required": 1,
+          "message": "Elastic IP quota sufficient"
+        },
+        "natGateway": {
+          "available": 5,
+          "required": 1,
+          "message": "NAT Gateway quota sufficient"
+        },
+        "message": "All AWS quotas sufficient"
+      },
+      "managementCluster": {
+        "status": "passed",
+        "version": "4.15.2",
+        "hypershiftOperator": "installed",
+        "message": "Management cluster ready"
+      },
+      "networking": {
+        "status": "passed",
+        "vpcCIDR": "10.0.0.0/16",
+        "podCIDR": "10.132.0.0/14",
+        "serviceCIDR": "172.31.0.0/16",
+        "message": "Network CIDRs valid and non-overlapping"
+      }
+    }
+  },
+  "metadata": {
+    "jobName": "validate-cls-123-gen-1-1697548800",
+    "jobNamespace": "hyperfleet-jobs",
+    "attempt": 1,
+    "startedAt": "2025-10-17T12:00:05Z",
+    "completedAt": "2025-10-17T12:02:00Z",
+    "duration": "115s"
+  },
+  "lastUpdated": "2025-10-17T12:02:00Z"
+}
