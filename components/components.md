@@ -124,16 +124,16 @@ graph TB
     StatusEndpoint -.->|"All adapters ready?<br/>(Phase 13)"| ClustersTable
     ClustersTable -.->|"UPDATE status = 'Validated'"| ClustersTable
 
-    %% Styling
-    classDef userClass fill:#e1f5ff,stroke:#333,stroke-width:2px
-    classDef apiClass fill:#fff4e6,stroke:#333,stroke-width:2px
-    classDef dbClass fill:#e8f5e9,stroke:#333,stroke-width:2px
-    classDef tickerClass fill:#f3e5f5,stroke:#333,stroke-width:2px
-    classDef outboxClass fill:#fff9c4,stroke:#333,stroke-width:2px
-    classDef brokerClass fill:#e0f2f1,stroke:#333,stroke-width:2px
-    classDef adapterClass fill:#fce4ec,stroke:#333,stroke-width:2px
-    classDef k8sClass fill:#e3f2fd,stroke:#333,stroke-width:2px
-    classDef logicClass fill:#f5f5f5,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
+    %% Styling (optimized for GitHub dark mode)
+    classDef userClass fill:#1565c0,stroke:#90caf9,stroke-width:2px,color:#fff
+    classDef apiClass fill:#ef6c00,stroke:#ffb74d,stroke-width:2px,color:#fff
+    classDef dbClass fill:#2e7d32,stroke:#81c784,stroke-width:2px,color:#fff
+    classDef tickerClass fill:#6a1b9a,stroke:#ba68c8,stroke-width:2px,color:#fff
+    classDef outboxClass fill:#f9a825,stroke:#fff176,stroke-width:2px,color:#000
+    classDef brokerClass fill:#00695c,stroke:#4db6ac,stroke-width:2px,color:#fff
+    classDef adapterClass fill:#c2185b,stroke:#f06292,stroke-width:2px,color:#fff
+    classDef k8sClass fill:#0277bd,stroke:#4fc3f7,stroke-width:2px,color:#fff
+    classDef logicClass fill:#424242,stroke:#bdbdbd,stroke-width:1px,stroke-dasharray: 5 5,color:#fff
 
     class User userClass
     class API,ClusterEndpoint,EventEndpoint,StatusEndpoint apiClass
