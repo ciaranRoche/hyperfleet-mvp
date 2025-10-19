@@ -46,14 +46,14 @@ sequenceDiagram
 
     Note over ValAdapter,ValJob: Validation Adapter Acts
 
-    ValAdapter->>K8s: Create Job<br/>hyperfleet-validate-cls-123-gen1
-    Note right of ValAdapter: Job spec includes:<br/>- Cluster ID<br/>- Generation<br/>- Provider: GCP
-
-    ValAdapter->>API: POST /api/hyperfleet/v1/adapter-status
-    Note right of ValAdapter: Body:<br/>{<br/>  status: "InProgress",<br/>  adapterType: "validation"<br/>}
+    ValAdapter->>API: POST /api/hyperfleet/v1/clusters/cls-123/status
+    Note right of ValAdapter: Body:<br/>{<br/>  status: "InProgress",<br/>  adapterType: "validation",<br/>  observedGeneration: 1<br/>}
     API->>DB: UPDATE adapter_statuses
     DB-->>API: Updated
     API-->>ValAdapter: 200 OK
+
+    ValAdapter->>K8s: Create Job<br/>hyperfleet-validate-cls-123-gen1
+    Note right of ValAdapter: Job spec includes:<br/>- Cluster ID<br/>- Generation<br/>- Provider: GCP
 
     K8s->>ValJob: Start Pod
     Note right of ValJob: Validation Job runs:<br/>- Check Cloud DNS zone<br/>- Check GCS bucket<br/>- Check GCP quotas<br/>- Check credentials
@@ -63,7 +63,9 @@ sequenceDiagram
 
     ValJob-->>K8s: Exit 0 (success)
 
-    ValAdapter->>API: POST /api/hyperfleet/v1/adapter-status
+    ValAdapter->>ValAdapter: Watch Job → Completed
+
+    ValAdapter->>API: POST /api/hyperfleet/v1/clusters/cls-123/status
     Note right of ValAdapter: Body:<br/>{<br/>  status: "Ready",<br/>  adapterType: "validation",<br/>  observedGeneration: 1<br/>}
 
     API->>DB: UPDATE adapter_statuses<br/>SET validation.ready = true,<br/>validation.observedGen = 1
