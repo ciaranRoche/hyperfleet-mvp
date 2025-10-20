@@ -36,43 +36,48 @@ sequenceDiagram
         Note right of ValAdapter: ✓ observedGen (0) < gen (1)<br/>DECISION: ACT
     and
         DnsAdapter->>DnsAdapter: Evaluate preconditions
-        Note right of DnsAdapter: ✗ validation.ready = false<br/>DECISION: IGNORE
+        Note right of DnsAdapter: ✗ validation.ready = false<br/>DECISION: Cannot Act
     and
         PlaceAdapter->>PlaceAdapter: Evaluate preconditions
-        Note right of PlaceAdapter: ✗ validation.ready = false<br/>✗ dns.ready = false<br/>DECISION: IGNORE
+        Note right of PlaceAdapter: ✗ validation.ready = false<br/>✗ dns.ready = false<br/>DECISION: Cannot Act
     end
 
-    Note over DnsAdapter,PlaceAdapter: DNS and Placement ACK event<br/>and wait for next event
+    par DNS and Placement Report Status
+        DnsAdapter->>API: POST /api/hyperfleet/v1/clusters/cls-123/status
+        Note right of DnsAdapter: Body:<br/>{<br/>  adapter: "dns",<br/>  observedGeneration: 1,<br/>  conditions: [<br/>    {type: "Applied", status: "False",<br/>     reason: "PreconditionsNotMet"},<br/>    {type: "Available", status: "False"},<br/>    {type: "Health", status: "True"}<br/>  ]<br/>}
+        API->>DB: UPDATE adapter_statuses
+        API-->>DnsAdapter: 200 OK
+    and
+        PlaceAdapter->>API: POST /api/hyperfleet/v1/clusters/cls-123/status
+        Note right of PlaceAdapter: Body: Same as DNS<br/>adapter: "placement"
+        API->>DB: UPDATE adapter_statuses
+        API-->>PlaceAdapter: 200 OK
+    end
+
+    Note over DnsAdapter,PlaceAdapter: DNS and Placement ACK event<br/>and exit
 
     Note over ValAdapter,ValJob: Validation Adapter Acts
 
-    ValAdapter->>API: POST /api/hyperfleet/v1/clusters/cls-123/status
-    Note right of ValAdapter: Body:<br/>{<br/>  status: "InProgress",<br/>  adapterType: "validation",<br/>  observedGeneration: 1<br/>}
-    API->>DB: UPDATE adapter_statuses
-    DB-->>API: Updated
-    API-->>ValAdapter: 200 OK
+    ValAdapter->>ValAdapter: Check if job exists<br/>(validation-cls-123-gen1)
+    Note right of ValAdapter: Job does not exist
 
     ValAdapter->>K8s: Create Job<br/>hyperfleet-validate-cls-123-gen1
     Note right of ValAdapter: Job spec includes:<br/>- Cluster ID<br/>- Generation<br/>- Provider: GCP
 
-    K8s->>ValJob: Start Pod
+    ValAdapter->>API: POST /api/hyperfleet/v1/clusters/cls-123/status
+    Note right of ValAdapter: Body:<br/>{<br/>  adapter: "validation",<br/>  observedGeneration: 1,<br/>  conditions: [<br/>    {type: "Applied", status: "True",<br/>     reason: "JobLaunched"},<br/>    {type: "Available", status: "Unknown",<br/>     reason: "JobInProgress"},<br/>    {type: "Health", status: "True"}<br/>  ]<br/>}
+    API->>DB: UPDATE adapter_statuses
+    API-->>ValAdapter: 200 OK
+
+    Note right of ValAdapter: Adapter ACKs message and exits<br/>Ticker will create new event to check progress
+
+    K8s->>ValJob: Start Pod (job runs asynchronously)
     Note right of ValJob: Validation Job runs:<br/>- Check Cloud DNS zone<br/>- Check GCS bucket<br/>- Check GCP quotas<br/>- Check credentials
 
     ValJob->>ValJob: Validate GCP prerequisites
-    Note right of ValJob: All checks pass:<br/>✓ Cloud DNS zone exists<br/>✓ GCS bucket configured<br/>✓ Quotas sufficient<br/>✓ Credentials valid
+    Note right of ValJob: (45-90 seconds later)<br/>All checks pass:<br/>✓ Cloud DNS zone exists<br/>✓ GCS bucket configured<br/>✓ Quotas sufficient<br/>✓ Credentials valid
 
     ValJob-->>K8s: Exit 0 (success)
 
-    ValAdapter->>ValAdapter: Watch Job → Completed
-
-    ValAdapter->>API: POST /api/hyperfleet/v1/clusters/cls-123/status
-    Note right of ValAdapter: Body:<br/>{<br/>  status: "Ready",<br/>  adapterType: "validation",<br/>  observedGeneration: 1<br/>}
-
-    API->>DB: UPDATE adapter_statuses<br/>SET validation.ready = true,<br/>validation.observedGen = 1
-    Note right of DB: Status updated<br/>Generation stays 1<br/>(no spec change)
-
-    DB-->>API: Updated
-    API-->>ValAdapter: 200 OK
-
-    Note right of ValAdapter: Validation complete!<br/>ACK Cloud Pub/Sub message
+    Note right of K8s: Job succeeded!<br/>Next event will detect this
 ```
